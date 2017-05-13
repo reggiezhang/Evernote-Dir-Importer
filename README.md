@@ -1,5 +1,7 @@
-# Evernote-Dir-Importer
+## Evernote-Dir-Importer
 Import directory into Evernote
+## Dependencies
+[fs](https://www.npmjs.com/package/fs), [md5-file](https://www.npmjs.com/package/md5-file), [child_process](https://www.npmjs.com/package/child_process), [progress](https://www.npmjs.com/package/progress), [async-foreach](https://www.npmjs.com/package/async-foreach), [commander](https://www.npmjs.com/package/commander), [path](https://www.npmjs.com/package/path), [shelljs](https://www.npmjs.com/package/shelljs), [junk](https://www.npmjs.com/package/junk)
 ```
 Usage: EN-dir-importer [options] <path>
 
