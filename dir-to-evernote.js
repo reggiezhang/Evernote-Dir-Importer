@@ -56,7 +56,7 @@ function doFillEntries(entries, dirPath, rootDirName, notebookName) {
     const dir = fs.readdirSync(dirPath);
     dir.forEach(function (filename) {
         if (junk.is(filename)) return;
-        if (filename.startsWith('.')) return;
+        if (/^\./.test(filename)) return;
         if (fs.lstatSync(`${dirPath}/${filename}`).isDirectory()) {
             return doFillEntries(entries, `${dirPath}/${filename}`, rootDirName, notebookName);
         }
