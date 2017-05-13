@@ -41,7 +41,7 @@ function shouldByPass(dirPath, filename, entry) {
     var latestMd5 = md5file.sync(`${dirPath}/${filename}`);
     if (originalMd5 !== latestMd5) {
         // delete old note
-        var shellCmd = `${__dirname}/delete-EN-note.js '${syncEntry.noteId.trim()}'`;
+        var shellCmd = `${__dirname}/lib/delete-EN-note.js '${syncEntry.noteId.trim()}'`;
         var nbName = require('shelljs').exec(shellCmd, { silent: true }).trim();
         if (nbName) entry.notebook = nbName;
     }
@@ -118,7 +118,7 @@ function main(argv) {
         try {
             bar.tick(1);
             var paramsFilePath = preparePrarmsFile(entry);
-            var shellCmd = `${__dirname}/create-EN-note.js '${paramsFilePath}'`;
+            var shellCmd = `${__dirname}/lib/create-EN-note.js '${paramsFilePath}'`;
             entry.noteId = require('shelljs').exec(shellCmd, { silent: true }).trim();
             completeSyncEntry(entry);
         } catch (e) {
