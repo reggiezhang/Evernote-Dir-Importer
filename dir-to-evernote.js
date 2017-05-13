@@ -104,7 +104,7 @@ function preparePrarmsFile(entry) {
 function main(argv) {
     var program = require('commander');
     program
-        .version('0.0.1')
+        .version('0.1.2')
         .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, a local notebook will be created named by root folder name and date.')
         .arguments('<path>')
         .parse(argv);
