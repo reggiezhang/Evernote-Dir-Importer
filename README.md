@@ -1,7 +1,7 @@
 # Evernote-Dir-Importer
 Import directory into Evernote
 ```
-Usage: en-dir-importer [options] <path>
+Usage: EN-dir-importer [options] <path>
 
   Options:
 
