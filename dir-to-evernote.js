@@ -31,6 +31,7 @@ function getSyncEntryFilePath(dirPath, filename) {
 function shouldByPass(dirPath, filename, entry) {
     const fs = require('fs');
     const md5file = require('md5-file');
+    const evernote = require('evernote-jxa');
     var syncEntryDirPath = getSyncEntryDirPath(dirPath);
     if (!fs.existsSync(syncEntryDirPath)) fs.mkdirSync(syncEntryDirPath);
     var syncEntryFilePath = getSyncEntryFilePath(dirPath, filename);
@@ -41,8 +42,7 @@ function shouldByPass(dirPath, filename, entry) {
     var latestMd5 = md5file.sync(`${dirPath}/${filename}`);
     if (originalMd5 !== latestMd5) {
         // delete old note
-        var shellCmd = `${__dirname}/lib/delete-EN-note.js '${syncEntry.noteId.trim()}'`;
-        var nbName = require('shelljs').exec(shellCmd, { silent: true }).trim();
+        var nbName = evernote.deleteNote(syncEntry.noteId.trim());
         if (nbName) entry.notebook = nbName;
     }
     return originalMd5 === latestMd5;
@@ -102,7 +102,9 @@ function preparePrarmsFile(entry) {
 }
 
 function main(argv) {
-    var program = require('commander');
+    const program = require('commander');
+    const fs = require('fs');
+    const evernote = require('evernote-jxa');
     program
         .version('0.1.3')
         .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, a local notebook will be created named by root folder name and date.')
@@ -110,16 +112,16 @@ function main(argv) {
         .parse(argv);
     if (!program.args.length) program.help();
     var dirPath = program.args[0];
-    const fs = require('fs');
+    
     console.log('Calculating...');
     var entries = fillEntries(new Array(), dirPath, program.notebook);
     var bar = initProgressBar(entries.length);
     require('async-foreach').forEach(entries, function (entry) {
         try {
             bar.tick(1);
+            evernote.createNotebook(entry.notebook);
             var paramsFilePath = preparePrarmsFile(entry);
-            var shellCmd = `${__dirname}/lib/create-EN-note.js '${paramsFilePath}'`;
-            entry.noteId = require('shelljs').exec(shellCmd, { silent: true }).trim();
+            entry.noteId = evernote.createNote(paramsFilePath);
             completeSyncEntry(entry);
         } catch (e) {
             console.log(e);

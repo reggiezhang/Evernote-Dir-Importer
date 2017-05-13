@@ -1,0 +1,12 @@
+{
+
+    "withText": "evernote-jxa-test content",
+    "title": "evernote-jxa-test title",
+    "notebook": "evernote-jxa-test",
+    "attachments": [
+        "./helloworld.txt"
+    ],
+    "tags": [
+        "evernote-jxa-test"
+    ]
+}
