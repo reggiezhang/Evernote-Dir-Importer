@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * import-dir-to-EN.js <dir_path>
+ * dir-to-evernote.js <dir_path>
  * Import Whole dir files as seperated note into a newly created local notebook.
  *  -  notebook named as <rootDirName: date>
  *  -  filename as note title
