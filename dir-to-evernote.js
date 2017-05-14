@@ -112,9 +112,13 @@ function main(argv) {
         .parse(argv);
     if (!program.args.length) program.help();
     var dirPath = program.args[0];
-    
-    console.log('Calculating...');
+
+    //console.log('Calculating...');
+    process.stdout.write("Calculating...");
     var entries = fillEntries(new Array(), dirPath, program.notebook);
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+    console.log("Importing...");
     var bar = initProgressBar(entries.length);
     require('async-foreach').forEach(entries, function (entry) {
         try {
