@@ -106,7 +106,7 @@ function main(argv) {
     const fs = require('fs');
     const evernote = require('evernote-jxa');
     program
-        .version('0.1.6')
+        .version('0.1.7')
         .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, a local notebook will be created named by root folder name and date.')
         .arguments('<path>')
         .parse(argv);
@@ -118,7 +118,7 @@ function main(argv) {
     var entries = fillEntries(new Array(), dirPath, program.notebook);
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
-    console.log("Importing...");
+    if (entries.length > 0) console.log("Importing...");
     var bar = initProgressBar(entries.length);
     require('async-foreach').forEach(entries, function (entry) {
         try {
