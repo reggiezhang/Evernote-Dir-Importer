@@ -1,6 +1,6 @@
 {
   "name": "dir-to-evernote",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "A command-line tool for importing directory on disk into Evernote.",
   "main": "dir-to-evernote.js",
   "scripts": {
