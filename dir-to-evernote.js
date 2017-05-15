@@ -102,11 +102,12 @@ function preparePrarmsFile(entry) {
 }
 
 function main(argv) {
+    const pkginfo = require('pkginfo')(module, 'version');
     const program = require('commander');
     const fs = require('fs');
     const evernote = require('evernote-jxa');
     program
-        .version('0.1.7')
+        .version(module.exports.version)
         .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, \
 a local notebook will be created named by root folder name and date.')
         .arguments('<path>')
@@ -119,7 +120,7 @@ a local notebook will be created named by root folder name and date.')
     var entries = fillEntries(new Array(), dirPath, program.notebook);
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
-    if (entries.length > 0) console.log("Importing...");
+    if (entries.length > 0) process.stdout.write("Importing...");;
     var bar = initProgressBar(entries.length);
     require('async-foreach').forEach(entries, function (entry) {
         try {
@@ -136,6 +137,8 @@ a local notebook will be created named by root folder name and date.')
             setImmediate(done);
         }
     });
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
 }
 
 if (typeof require != 'undefined' && require.main == module) {
