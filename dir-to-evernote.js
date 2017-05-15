@@ -107,7 +107,8 @@ function main(argv) {
     const evernote = require('evernote-jxa');
     program
         .version('0.1.7')
-        .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, a local notebook will be created named by root folder name and date.')
+        .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, \
+a local notebook will be created named by root folder name and date.')
         .arguments('<path>')
         .parse(argv);
     if (!program.args.length) program.help();
