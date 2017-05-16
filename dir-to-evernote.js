@@ -120,7 +120,6 @@ function main(argv) {
     const entries = fillEntries([], dirPath, program.notebook);
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
-    // if (entries.length > 0) process.stdout.write('Importing...');
     const bar = initProgressBar(entries.length);
     require('async-foreach').forEach(entries, function(entry) {
         const paramsFilePath = preparePrarmsFile(entry);
@@ -139,9 +138,6 @@ function main(argv) {
             setImmediate(done);
         }
     });
-
-    // process.stdout.clearLine();
-    // process.stdout.cursorTo(0);
 }
 
 if (typeof require != 'undefined' && require.main == module) {
