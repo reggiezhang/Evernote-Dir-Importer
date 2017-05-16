@@ -10,7 +10,7 @@
     "rules": {
         "max-len": [
             "error",
-            120,
+            180,
             4
         ],
         "require-jsdoc": "off",

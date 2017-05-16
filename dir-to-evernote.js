@@ -56,13 +56,13 @@ function doFillEntries(entries, dirPath, rootDirName, notebookName) {
     const junk = require('junk');
     const fs = require('fs');
     const dir = fs.readdirSync(dirPath);
-    dir.forEach(function (filename) {
+    dir.forEach(function(filename) {
         if (junk.is(filename)) return;
         if (/^\./.test(filename)) return;
         if (fs.lstatSync(`${dirPath}/${filename}`).isDirectory()) {
             return doFillEntries(entries, `${dirPath}/${filename}`, rootDirName, notebookName);
         }
-        var entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
+        let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) return;
         entries.push(entry);
     });
@@ -110,8 +110,7 @@ function main(argv) {
     const evernote = require('evernote-jxa');
     program
         .version(module.exports.version)
-        .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, \
-a local notebook will be created named by root folder name and date.')
+        .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, a local notebook will be created named by root folder name and date.')
         .arguments('<path>')
         .parse(argv);
     if (!program.args.length) program.help();
