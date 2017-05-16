@@ -12,6 +12,8 @@
  *
  */
 
+'use strict';
+
 const SYNC_DIR_NAME = '.en-sync';
 function initProgressBar(totalLength) {
     const ProgressBar = require('progress');
@@ -37,7 +39,7 @@ function shouldByPass(dirPath, filename, entry) {
     var syncEntryFilePath = getSyncEntryFilePath(dirPath, filename);
     var syncEntryFileExist = fs.existsSync(syncEntryFilePath);
     if (!syncEntryFileExist) return false;
-    var syncEntry = JSON.parse(fs.readFileSync(syncEntryFilePath));
+    var syncEntry = JSON.parse(fs.readFileSync(syncEntryFilePath).toString());
     var originalMd5 = syncEntry.md5;
     var latestMd5 = md5file.sync(`${dirPath}/${filename}`);
     if (originalMd5 !== latestMd5) {
