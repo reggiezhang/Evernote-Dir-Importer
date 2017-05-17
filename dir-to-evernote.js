@@ -140,9 +140,7 @@ function main(argv) {
       console.log(e);
     } finally {
       fs.unlinkSync(paramsFilePath);
-      /*eslint-disable */
-      var done = this.async();
-      /*eslint-disable */
+      let done = this.async(); // eslint-disable-line no-invalid-this
       setImmediate(done);
     }
   });
