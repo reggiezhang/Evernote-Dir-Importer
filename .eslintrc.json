@@ -1,19 +1,19 @@
 {
-    "env": {
-        "es6": true,
-        "node": true
-    },
-    "extends": [
-        "eslint:recommended",
-        "google"
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "google"
+  ],
+  "rules": {
+    "max-len": [
+      "error",
+      180,
+      4
     ],
-    "rules": {
-        "max-len": [
-            "error",
-            180,
-            4
-        ],
-        "require-jsdoc": "off",
-        "no-console": "off"
-    }
+    "require-jsdoc": "off",
+    "no-console": "off"
+  }
 }
