@@ -104,7 +104,7 @@ function preparePrarmsFile(entry) {
 }
 
 function writeLineConsole(str) {
-  process.stdout.write('Calculating...');
+  process.stdout.write(str);
 }
 function clearLineConsole() {
   process.stdout.clearLine();
