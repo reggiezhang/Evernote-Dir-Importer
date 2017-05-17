@@ -103,6 +103,14 @@ function preparePrarmsFile(entry) {
     return paramsFilePath;
 }
 
+function writeLineConsole(str) {
+    process.stdout.write('Calculating...');
+}
+function clearLineConsole() {
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+}
+
 function main(argv) {
     require('pkginfo')(module, 'version');
     const program = require('commander');
@@ -116,10 +124,10 @@ function main(argv) {
     if (!program.args.length) program.help();
     const dirPath = program.args[0];
 
-    process.stdout.write('Calculating...');
+    writeLineConsole('Calculating...');
     const entries = fillEntries([], dirPath, program.notebook);
-    process.stdout.clearLine();
-    process.stdout.cursorTo(0);
+    clearLineConsole();
+
     const bar = initProgressBar(entries.length);
     require('async-foreach').forEach(entries, function(entry) {
         const paramsFilePath = preparePrarmsFile(entry);
