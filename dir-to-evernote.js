@@ -22,6 +22,7 @@ function initProgressBar(totalLength, notebookName, counter) {
     incomplete: ' ',
     width: 20,
     total: totalLength,
+    renderThrottle: 5,
     clear: false,
     callback: function () {  // Method which will display type of Animal
       if (counter.created > 0) {
@@ -59,6 +60,13 @@ function shouldByPass(dirPath, filename, entry) {
   }
   return originalMd5 === latestMd5;
 }
+function barTick(bar, filename) {
+  const cliTruncate = require('cli-truncate');
+  let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
+  bar.tick(1, {
+    'filename': trailingStr,
+  });
+}
 /*
 * Entry: {withText: 'blabla', title: 'blabla', notebook: 'name', tags:['rootDir', 'parentDir'], attachments:['/tm/file']}
 */
@@ -66,32 +74,23 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
   const evernote = require('evernote-jxa');
   const junk = require('junk');
   const fs = require('fs');
-  const cliTruncate = require('cli-truncate');
   const dir = fs.readdirSync(dirPath);
 
   require('async-foreach').forEach(dir, function (filename) {
     if (junk.is(filename)) return;
     if (/^\./.test(filename)) return;
-
     fs.lstat(`${dirPath}/${filename}`, function (err, stats) {
-
       if (stats.isDirectory()) {
         return doFillEntries(bar, entries, `${dirPath}/${filename}`, rootDirName, notebookName, counter);
       } else {
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) {
-          let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
-          bar.tick(1, {
-            'filename': trailingStr,
-          });
+          barTick(bar, filename);
           return;
         }
         entry.md5 ? ++counter.updated : ++counter.created;
         entries.push(entry);
-        let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
-        bar.tick(1, {
-          'filename': trailingStr,
-        });
+        barTick(bar, filename);
         const paramsFilePath = preparePrarmsFile(entry);
         try {
           evernote.createNotebook(entry.notebook);
