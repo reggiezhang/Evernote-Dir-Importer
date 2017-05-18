@@ -15,7 +15,7 @@
 'use strict';
 
 const SYNC_DIR_NAME = '.en-sync';
-function initProgressBar(totalLength, entries) {
+function initProgressBar(totalLength, notebookName, counter) {
   const ProgressBar = require('progress');
   return new ProgressBar(':percent|:bar|  :current/:total  elapsed: :elapseds  eta: :etas  :filename', {
     complete: '█',
@@ -24,7 +24,11 @@ function initProgressBar(totalLength, entries) {
     total: totalLength,
     clear: false,
     callback: function () {  // Method which will display type of Animal
-      console.log(`${entries.length} note(s) created/updated.`);
+      if (counter.created > 0) {
+        console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
+      } else {
+        console.log(`${counter.created} note(s) created, ${counter.updated} note(s) updated.`);
+      }
     },
   });
 }
@@ -57,7 +61,7 @@ function shouldByPass(dirPath, filename, entry) {
 /*
 * Entry: {withText: 'blabla', title: 'blabla', notebook: 'name', tags:['rootDir', 'parentDir'], attachments:['/tm/file']}
 */
-function doFillEntries(bar, entries, dirPath, rootDirName, notebookName) {
+function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter) {
   const evernote = require('evernote-jxa');
   const junk = require('junk');
   const fs = require('fs');
@@ -69,7 +73,7 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName) {
     if (/^\./.test(filename)) return;
     fs.lstat(`${dirPath}/${filename}`, function (err, stats) {
       if (stats.isDirectory()) {
-        return doFillEntries(bar, entries, `${dirPath}/${filename}`, rootDirName, notebookName);
+        return doFillEntries(bar, entries, `${dirPath}/${filename}`, rootDirName, notebookName, counter);
       } else {
         let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
         bar.tick(1, {
@@ -77,6 +81,7 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName) {
         });
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) return;
+        entry.md5 ? counter.created++ : counter.updated++;
         entries.push(entry);
         const paramsFilePath = preparePrarmsFile(entry);
         try {
@@ -117,10 +122,12 @@ function completeSyncEntry(entry) {
 function fillEntries(entries, dirPath, notebookName) {
   const path = require('path');
   let count = countDir(dirPath);
-  const bar = initProgressBar(count, entries);
+  let counter = { 'created': 0, 'updated': 0 };
+
   const rootDirName = dirPath.split(path.sep).pop();
   if (!notebookName) notebookName = `${rootDirName}: ${new Date().toDateString()}`;
-  return doFillEntries(bar, entries, dirPath, rootDirName, notebookName);
+  const bar = initProgressBar(count, notebookName, counter);
+  return doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter);
 }
 function preparePrarmsFile(entry) {
   const uuidV4 = require('uuid/v4');
