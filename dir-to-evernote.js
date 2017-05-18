@@ -136,7 +136,7 @@ function doImportFilesEx(bar, entries, rootDirName, notebookName, counter) {
       }
     }
     let done = this.async(); // eslint-disable-line no-invalid-this
-    setImmediate(done, 1000);
+    setTimeout(done, 1000);
   });
 }
 function initSyncEntry(dirPath, filename, notebookName, rootDirName) {
