@@ -61,6 +61,7 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName) {
   const evernote = require('evernote-jxa');
   const junk = require('junk');
   const fs = require('fs');
+  const cliTruncate = require('cli-truncate');
   const dir = fs.readdirSync(dirPath);
 
   require('async-foreach').forEach(dir, function (filename) {
@@ -70,9 +71,9 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName) {
       if (stats.isDirectory()) {
         return doFillEntries(bar, entries, `${dirPath}/${filename}`, rootDirName, notebookName);
       } else {
-        let lastStr = (bar.curr + 1 === bar.total) ? '' : filename;
+        let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
         bar.tick(1, {
-          'filename': lastStr,
+          'filename': trailingStr,
         });
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) return;
