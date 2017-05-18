@@ -81,7 +81,7 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
         });
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) return;
-        entry.md5 ? counter.created++ : counter.updated++;
+        !entry.md5 ? counter.created++ : counter.updated++;
         entries.push(entry);
         const paramsFilePath = preparePrarmsFile(entry);
         try {
