@@ -22,7 +22,7 @@ function initProgressBar(totalLength, notebookName, counter) {
     incomplete: ' ',
     width: 20,
     total: totalLength,
-    renderThrottle: 5,
+    renderThrottle: 0,
     clear: false,
     callback: function () {  // Method which will display type of Animal
       if (counter.created > 0) {
