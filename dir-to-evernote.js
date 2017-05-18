@@ -72,20 +72,30 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
   require('async-foreach').forEach(dir, function (filename) {
     if (junk.is(filename)) return;
     if (/^\./.test(filename)) return;
+
     fs.lstat(`${dirPath}/${filename}`, function (err, stats) {
+
       if (stats.isDirectory()) {
         return doFillEntries(bar, entries, `${dirPath}/${filename}`, rootDirName, notebookName, counter);
       } else {
+        let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
+        bar.tick(1, {
+          'filename': trailingStr,
+        });
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) {
-          let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
-          bar.tick(1, {
-            'filename': trailingStr,
-          });
-          return;
+          // let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
+          // bar.tick(1, {
+          //   'filename': trailingStr,
+          // });
+          // return;
         }
         entry.md5 ? ++counter.updated : ++counter.created;
         entries.push(entry);
+        // let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
+        // bar.tick(1, {
+        //   'filename': trailingStr,
+        // });
         const paramsFilePath = preparePrarmsFile(entry);
         try {
           evernote.createNotebook(entry.notebook);
@@ -95,10 +105,6 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
           console.log(e);
         } finally {
           fs.unlinkSync(paramsFilePath);
-          let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
-          bar.tick(1, {
-            'filename': trailingStr,
-          });
         }
       }
     });
