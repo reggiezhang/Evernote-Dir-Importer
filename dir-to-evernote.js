@@ -80,13 +80,13 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
         bar.tick(1, {
           'filename': trailingStr,
         });
-        if (bar.complete) {
-          if (counter.created > 0) {
-            console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
-          } else {
-            console.log(`${counter.created} note(s) created, ${counter.updated} note(s) updated.`);
-          }
-        }
+        // if (bar.complete) {
+        //   if (counter.created > 0) {
+        //     console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
+        //   } else {
+        //     console.log(`${counter.created} note(s) created, ${counter.updated} note(s) updated.`);
+        //   }
+        // }
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) return;
         entry.md5 ? ++counter.updated : ++counter.created;
