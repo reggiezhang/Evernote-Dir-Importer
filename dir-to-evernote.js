@@ -25,9 +25,9 @@ function initProgressBar(totalLength, notebookName, counter) {
     clear: false,
     callback: function () {  // Method which will display type of Animal
       if (counter.created > 0) {
-        // console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
+        console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
       } else {
-        // console.log(`${counter.created} note(s) created, ${counter.updated} note(s) updated.`);
+        console.log(`${counter.created} note(s) created, ${counter.updated} note(s) updated.`);
       }
     },
   });
@@ -76,19 +76,14 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
       if (stats.isDirectory()) {
         return doFillEntries(bar, entries, `${dirPath}/${filename}`, rootDirName, notebookName, counter);
       } else {
-        let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
-        bar.tick(1, {
-          'filename': trailingStr,
-        });
-        // if (bar.complete) {
-        //   if (counter.created > 0) {
-        //     console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
-        //   } else {
-        //     console.log(`${counter.created} note(s) created, ${counter.updated} note(s) updated.`);
-        //   }
-        // }
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
-        if (shouldByPass(dirPath, filename, entry)) return;
+        if (shouldByPass(dirPath, filename, entry)) {
+          let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
+          bar.tick(1, {
+            'filename': trailingStr,
+          });
+          return;
+        }
         entry.md5 ? ++counter.updated : ++counter.created;
         entries.push(entry);
         const paramsFilePath = preparePrarmsFile(entry);
@@ -100,6 +95,10 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
           console.log(e);
         } finally {
           fs.unlinkSync(paramsFilePath);
+          let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
+          bar.tick(1, {
+            'filename': trailingStr,
+          });
         }
       }
     });
