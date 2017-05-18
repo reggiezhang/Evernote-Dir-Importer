@@ -15,13 +15,17 @@
 'use strict';
 
 const SYNC_DIR_NAME = '.en-sync';
-function initProgressBar(totalLength) {
+function initProgressBar(totalLength, entries) {
   const ProgressBar = require('progress');
-  return new ProgressBar(':percent|:bar|  :current/:total  elapsed: :elapseds  eta: :etas', {
+  return new ProgressBar(':percent|:bar|  :current/:total  elapsed: :elapseds  eta: :etas  :filename', {
     complete: '█',
     incomplete: ' ',
-    width: 40,
+    width: 20,
     total: totalLength,
+    clear: false,
+    callback: function () {  // Method which will display type of Animal
+      console.log(`${entries.length} note(s) created/updated.`);
+    },
   });
 }
 function getSyncEntryDirPath(dirPath) {
@@ -66,7 +70,10 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName) {
       if (stats.isDirectory()) {
         return doFillEntries(bar, entries, `${dirPath}/${filename}`, rootDirName, notebookName);
       } else {
-        bar.tick(1);
+        let lastStr = (bar.curr + 1 === bar.total) ? '' : filename;
+        bar.tick(1, {
+          'filename': lastStr,
+        });
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) return;
         entries.push(entry);
@@ -106,11 +113,10 @@ function completeSyncEntry(entry) {
   fs.writeSync(fd, JSON.stringify(entry, null, '    '));
   fs.closeSync(fd);
 }
-
 function fillEntries(entries, dirPath, notebookName) {
   const path = require('path');
   let count = countDir(dirPath);
-  const bar = initProgressBar(count);
+  const bar = initProgressBar(count, entries);
   const rootDirName = dirPath.split(path.sep).pop();
   if (!notebookName) notebookName = `${rootDirName}: ${new Date().toDateString()}`;
   return doFillEntries(bar, entries, dirPath, rootDirName, notebookName);
@@ -151,10 +157,7 @@ function main(argv) {
     .parse(argv);
   if (!program.args.length) program.help();
   const dirPath = program.args[0];
-  let entries = fillEntries([], dirPath, program.notebook);
-  if (entries.length > 0) {
-    console.log(`${entries.length} notes created/updated.`);
-  }
+  fillEntries([], dirPath, program.notebook);
 }
 
 if (typeof require != 'undefined' && require.main == module) {
