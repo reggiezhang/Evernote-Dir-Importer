@@ -25,9 +25,9 @@ function initProgressBar(totalLength, notebookName, counter) {
     clear: false,
     callback: function () {  // Method which will display type of Animal
       if (counter.created > 0) {
-        console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
+        // console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
       } else {
-        console.log(`${counter.created} note(s) created, ${counter.updated} note(s) updated.`);
+        // console.log(`${counter.created} note(s) created, ${counter.updated} note(s) updated.`);
       }
     },
   });
@@ -53,6 +53,7 @@ function shouldByPass(dirPath, filename, entry) {
   const latestMd5 = md5file.sync(`${dirPath}/${filename}`);
   if (originalMd5 !== latestMd5) {
     // delete old note
+    entry.md5 = syncEntry.md5;
     const nbName = evernote.deleteNote(syncEntry.noteId.trim());
     if (nbName) entry.notebook = nbName;
   }
@@ -81,7 +82,7 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
         });
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) return;
-        !entry.md5 ? counter.created++ : counter.updated++;
+        entry.md5 ? ++counter.updated : ++counter.created;
         entries.push(entry);
         const paramsFilePath = preparePrarmsFile(entry);
         try {
@@ -122,7 +123,7 @@ function completeSyncEntry(entry) {
 function fillEntries(entries, dirPath, notebookName) {
   const path = require('path');
   let count = countDir(dirPath);
-  let counter = { 'created': 0, 'updated': 0 };
+  let counter = { 'created': 0, 'updated': 0 }; // eslint-disable-line
 
   const rootDirName = dirPath.split(path.sep).pop();
   if (!notebookName) notebookName = `${rootDirName}: ${new Date().toDateString()}`;
