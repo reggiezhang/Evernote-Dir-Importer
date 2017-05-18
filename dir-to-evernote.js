@@ -53,19 +53,36 @@ function shouldByPass(dirPath, filename, entry) {
 /*
 * Entry: {withText: 'blabla', title: 'blabla', notebook: 'name', tags:['rootDir', 'parentDir'], attachments:['/tm/file']}
 */
-function doFillEntries(entries, dirPath, rootDirName, notebookName) {
+function doFillEntries(bar, entries, dirPath, rootDirName, notebookName) {
+  const evernote = require('evernote-jxa');
   const junk = require('junk');
   const fs = require('fs');
   const dir = fs.readdirSync(dirPath);
-  dir.forEach(function(filename) {
+
+  require('async-foreach').forEach(dir, function (filename) {
     if (junk.is(filename)) return;
     if (/^\./.test(filename)) return;
-    if (fs.lstatSync(`${dirPath}/${filename}`).isDirectory()) {
-      return doFillEntries(entries, `${dirPath}/${filename}`, rootDirName, notebookName);
-    }
-    let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
-    if (shouldByPass(dirPath, filename, entry)) return;
-    entries.push(entry);
+    fs.lstat(`${dirPath}/${filename}`, function (err, stats) {
+      if (stats.isDirectory()) {
+        return doFillEntries(bar, entries, `${dirPath}/${filename}`, rootDirName, notebookName);
+      } else {
+        bar.tick(1);
+        let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
+        if (shouldByPass(dirPath, filename, entry)) return;
+        const paramsFilePath = preparePrarmsFile(entry);
+        try {
+          evernote.createNotebook(entry.notebook);
+          entry.noteId = evernote.createNote(paramsFilePath);
+          completeSyncEntry(entry);
+        } catch (e) {
+          console.log(e);
+        } finally {
+          fs.unlinkSync(paramsFilePath);
+        }
+      }
+    });
+    let done = this.async(); // eslint-disable-line no-invalid-this
+    setImmediate(done);
   });
   return entries;
 }
@@ -91,9 +108,11 @@ function completeSyncEntry(entry) {
 
 function fillEntries(entries, dirPath, notebookName) {
   const path = require('path');
+  let count = countDir(dirPath);
+  const bar = initProgressBar(count);
   const rootDirName = dirPath.split(path.sep).pop();
   if (!notebookName) notebookName = `${rootDirName}: ${new Date().toDateString()}`;
-  return doFillEntries(entries, dirPath, rootDirName, notebookName);
+  return doFillEntries(bar, entries, dirPath, rootDirName, notebookName);
 }
 function preparePrarmsFile(entry) {
   const uuidV4 = require('uuid/v4');
@@ -104,19 +123,26 @@ function preparePrarmsFile(entry) {
   return paramsFilePath;
 }
 
-function writeLineConsole(str) {
-  process.stdout.write(str);
-}
-function clearLineConsole() {
-  process.stdout.clearLine();
-  process.stdout.cursorTo(0);
+function countDir(dirPath) {
+  const junk = require('junk');
+  const fs = require('fs');
+  const dir = fs.readdirSync(dirPath);
+  let count = 0;
+  dir.forEach(function (filename) {
+    if (junk.is(filename)) return;
+    if (/^\./.test(filename)) return;
+    if (fs.lstatSync(`${dirPath}/${filename}`).isDirectory()) {
+      count += countDir(`${dirPath}/${filename}`);
+    } else {
+      count++;
+    }
+  });
+  return count;
 }
 
 function main(argv) {
   require('pkginfo')(module, 'version');
   const program = require('commander');
-  const fs = require('fs');
-  const evernote = require('evernote-jxa');
   program
     .version(module.exports.version)
     .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, a local notebook will be created named by root folder name and date.')
@@ -124,27 +150,7 @@ function main(argv) {
     .parse(argv);
   if (!program.args.length) program.help();
   const dirPath = program.args[0];
-
-  writeLineConsole('Calculating...');
-  const entries = fillEntries([], dirPath, program.notebook);
-  clearLineConsole();
-
-  const bar = initProgressBar(entries.length);
-  require('async-foreach').forEach(entries, function(entry) {
-    const paramsFilePath = preparePrarmsFile(entry);
-    try {
-      bar.tick(1);
-      evernote.createNotebook(entry.notebook);
-      entry.noteId = evernote.createNote(paramsFilePath);
-      completeSyncEntry(entry);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      fs.unlinkSync(paramsFilePath);
-      let done = this.async(); // eslint-disable-line no-invalid-this
-      setImmediate(done);
-    }
-  });
+  fillEntries([], dirPath, program.notebook);
 }
 
 if (typeof require != 'undefined' && require.main == module) {
