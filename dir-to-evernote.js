@@ -69,6 +69,7 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName) {
         bar.tick(1);
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) return;
+        entries.push(entry);
         const paramsFilePath = preparePrarmsFile(entry);
         try {
           evernote.createNotebook(entry.notebook);
@@ -150,7 +151,10 @@ function main(argv) {
     .parse(argv);
   if (!program.args.length) program.help();
   const dirPath = program.args[0];
-  fillEntries([], dirPath, program.notebook);
+  let entries = fillEntries([], dirPath, program.notebook);
+  if (entries.length > 0) {
+    console.log(`${entries.length} notes created/updated.`);
+  }
 }
 
 if (typeof require != 'undefined' && require.main == module) {
