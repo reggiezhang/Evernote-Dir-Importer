@@ -70,7 +70,7 @@ function barTick(bar, filename) {
 /*
 * Entry: {withText: 'blabla', title: 'blabla', notebook: 'name', tags:['rootDir', 'parentDir'], attachments:['/tm/file']}
 */
-function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter) {
+function doImportFiles(bar, dirPath, rootDirName, notebookName, counter) {
   const evernote = require('evernote-jxa');
   const junk = require('junk');
   const fs = require('fs');
@@ -81,7 +81,7 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
     if (/^\./.test(filename)) return;
     fs.lstat(`${dirPath}/${filename}`, function (err, stats) {
       if (stats.isDirectory()) {
-        return doFillEntries(bar, entries, `${dirPath}/${filename}`, rootDirName, notebookName, counter);
+        doImportFiles(bar, `${dirPath}/${filename}`, rootDirName, notebookName, counter);
       } else {
         let entry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
         if (shouldByPass(dirPath, filename, entry)) {
@@ -89,7 +89,6 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
           return;
         }
         entry.md5 ? ++counter.updated : ++counter.created;
-        entries.push(entry);
         barTick(bar, filename);
         const paramsFilePath = preparePrarmsFile(entry);
         try {
@@ -106,7 +105,39 @@ function doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter
     let done = this.async(); // eslint-disable-line no-invalid-this
     setImmediate(done);
   });
-  return entries;
+}
+
+/*
+* Entry: {withText: 'blabla', title: 'blabla', notebook: 'name', tags:['rootDir', 'parentDir'], attachments:['/tm/file']}
+*/
+function doImportFilesEx(bar, entries, rootDirName, notebookName, counter) {
+  const evernote = require('evernote-jxa');
+  const junk = require('junk');
+  const fs = require('fs');
+
+  require('async-foreach').forEach(entries, function (entry) {
+    if (junk.is(entry.filename)) return;
+    if (/^\./.test(entry.filename)) return;
+    let syncEntry = initSyncEntry(entry.dirPath, entry.filename, notebookName, rootDirName);
+    if (shouldByPass(entry.dirPath, entry.filename, entry)) {
+      barTick(bar, entry.filename);
+    } else {
+      syncEntry.md5 ? ++counter.updated : ++counter.created;
+      const paramsFilePath = preparePrarmsFile(entry);
+      try {
+        syncEntry.createNotebook(syncEntry.notebook);
+        syncEntry.noteId = evernote.createNote(paramsFilePath);
+        completeSyncEntry(entry);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        fs.unlinkSync(paramsFilePath);
+        barTick(bar, entry.filename);
+      }
+    }
+    let done = this.async(); // eslint-disable-line no-invalid-this
+    setImmediate(done, 1000);
+  });
 }
 function initSyncEntry(dirPath, filename, notebookName, rootDirName) {
   const path = require('path');
@@ -127,15 +158,17 @@ function completeSyncEntry(entry) {
   fs.writeSync(fd, JSON.stringify(entry, null, '    '));
   fs.closeSync(fd);
 }
-function fillEntries(entries, dirPath, notebookName) {
+function importFiles(dirPath, notebookName) {
   const path = require('path');
-  let count = countDir(dirPath);
+  let entries = [];
+  let count = countDir(dirPath, entries);
   let counter = { 'created': 0, 'updated': 0 }; // eslint-disable-line
 
   const rootDirName = dirPath.split(path.sep).pop();
   if (!notebookName) notebookName = `${rootDirName}: ${new Date().toDateString()}`;
   const bar = initProgressBar(count, notebookName, counter);
-  return doFillEntries(bar, entries, dirPath, rootDirName, notebookName, counter);
+  // return doImportFiles(bar, dirPath, rootDirName, notebookName, counter);
+  doImportFilesEx(bar, entries, rootDirName, notebookName, counter);
 }
 function preparePrarmsFile(entry) {
   const uuidV4 = require('uuid/v4');
@@ -146,7 +179,7 @@ function preparePrarmsFile(entry) {
   return paramsFilePath;
 }
 
-function countDir(dirPath) {
+function countDir(dirPath, entries) {
   const junk = require('junk');
   const fs = require('fs');
   const dir = fs.readdirSync(dirPath);
@@ -155,9 +188,13 @@ function countDir(dirPath) {
     if (junk.is(filename)) return;
     if (/^\./.test(filename)) return;
     if (fs.lstatSync(`${dirPath}/${filename}`).isDirectory()) {
-      count += countDir(`${dirPath}/${filename}`);
+      count += countDir(`${dirPath}/${filename}`, entries);
     } else {
       count++;
+      // let entry = {};
+      // entry.dirPath = dirPath;
+      // entry.filename = filename;
+      entries.push({dirPath: dirPath, filename: filename});
     }
   });
   return count;
@@ -173,7 +210,7 @@ function main(argv) {
     .parse(argv);
   if (!program.args.length) program.help();
   const dirPath = program.args[0];
-  fillEntries([], dirPath, program.notebook);
+  importFiles(dirPath, program.notebook);
 }
 
 if (typeof require != 'undefined' && require.main == module) {
