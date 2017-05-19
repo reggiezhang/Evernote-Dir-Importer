@@ -24,7 +24,7 @@ function initProgressBar(totalLength, notebookName, counter) {
     total: totalLength,
     renderThrottle: 0,
     clear: false,
-    callback: function () {  // Method which will display type of Animal
+    callback: function importCompleted() {  // Method which will display type of Animal
       if (counter.created > 0) {
         console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
       } else {
@@ -76,7 +76,7 @@ function doImportFiles(bar, entries, rootDirName, notebookName, counter) {
   const junk = require('junk');
   const fs = require('fs');
 
-  require('async-foreach').forEach(entries, function (fileEntry) {
+  require('async-foreach').forEach(entries, function doImportFile(fileEntry) {
     const filename = fileEntry.filename;
     const dirPath = fileEntry.dirPath;
     if (junk.is(filename)) return;
@@ -155,7 +155,7 @@ function countDir(dirPath, entries) {
   const fs = require('fs');
   const dir = fs.readdirSync(dirPath);
   let count = 0;
-  dir.forEach(function (filename) {
+  dir.forEach(function examFile(filename) {
     if (junk.is(filename)) return;
     if (/^\./.test(filename)) return;
     if (fs.lstatSync(`${dirPath}/${filename}`).isDirectory()) {
