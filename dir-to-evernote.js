@@ -62,7 +62,7 @@ function shouldByPass(dirPath, filename, entry) {
 }
 function barTick(bar, filename) {
   const cliTruncate = require('cli-truncate');
-  let trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
+  const trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
   bar.tick(1, {
     'filename': trailingStr,
   });
@@ -77,11 +77,11 @@ function doImportFiles(bar, entries, rootDirName, notebookName, counter) {
   const fs = require('fs');
 
   require('async-foreach').forEach(entries, function (fileEntry) {
-    let filename = fileEntry.filename;
-    let dirPath = fileEntry.dirPath;
+    const filename = fileEntry.filename;
+    const dirPath = fileEntry.dirPath;
     if (junk.is(filename)) return;
     if (/^\./.test(filename)) return;
-    let syncEntry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
+    const syncEntry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
     if (shouldByPass(dirPath, filename, syncEntry)) {
       barTick(bar, filename);
     } else {
@@ -98,13 +98,13 @@ function doImportFiles(bar, entries, rootDirName, notebookName, counter) {
         fs.unlinkSync(paramsFilePath);
       }
     }
-    let done = this.async(); // eslint-disable-line no-invalid-this
+    const done = this.async(); // eslint-disable-line no-invalid-this
     setTimeout(done, 1);
   });
 }
 function initSyncEntry(dirPath, filename, notebookName, rootDirName) {
   const path = require('path');
-  let entry = {};
+  const entry = {};
   entry['SyncEntry'] = getSyncEntryFilePath(dirPath, filename);
   entry['withText'] = filename;
   entry['title'] = filename;
@@ -123,9 +123,11 @@ function completeSyncEntry(entry) {
 }
 function importFiles(dirPath, notebookName) {
   const path = require('path');
-  let entries = [];
-  let count = countDir(dirPath, entries);
-  let counter = { 'created': 0, 'updated': 0 }; // eslint-disable-line
+  const entries = [];
+  writeLineConsole('Calculating...');
+  const count = countDir(dirPath, entries);
+  clearLineConsole();
+  const counter = { 'created': 0, 'updated': 0 }; // eslint-disable-line
 
   const rootDirName = dirPath.split(path.sep).pop();
   if (!notebookName) notebookName = `${rootDirName}: ${new Date().toDateString()}`;
@@ -141,7 +143,13 @@ function preparePrarmsFile(entry) {
   fs.writeFileSync(paramsFilePath, JSON.stringify(entry));
   return paramsFilePath;
 }
-
+function writeLineConsole(str) {
+  process.stdout.write(str);
+}
+function clearLineConsole() {
+  process.stdout.clearLine();
+  process.stdout.cursorTo(0);
+}
 function countDir(dirPath, entries) {
   const junk = require('junk');
   const fs = require('fs');
@@ -154,7 +162,7 @@ function countDir(dirPath, entries) {
       count += countDir(`${dirPath}/${filename}`, entries);
     } else {
       count++;
-      // let entry = {};
+      // const entry = {};
       // entry.dirPath = dirPath;
       // entry.filename = filename;
       entries.push({dirPath: dirPath, filename: filename});
