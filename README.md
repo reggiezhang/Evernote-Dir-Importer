@@ -1,5 +1,5 @@
-## dir-to-evernote
-Import directory into Evernote
+## dir-to-evernote for MacOS
+Import directory into Evernote for MacOS
 
 ## Install
 ```
@@ -14,6 +14,6 @@ Usage: dir-to-evernote [options] <path>
 
     -h, --help                 output usage information
     -V, --version              output the version number
-    -n, --notebook <notebook>  Target Notebook Name, if not specified, a local notebook 
+    -n, --notebook <notebook>  Target Notebook Name, if not specified, a local notebook
                                will be created named by root folder name and date.
 ```
