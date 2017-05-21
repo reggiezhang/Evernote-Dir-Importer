@@ -14,7 +14,8 @@
 
 'use strict';
 
-const SYNC_DIR_NAME = '.en-sync';
+const SYNC_DIR_NAME = '.dir-to-evernote';
+const SYNC_DIR_NAME_OLD = '.en-sync'; // <= 0.2.10
 function initProgressBar(totalLength, notebookName, counter) {
   const ProgressBar = require('progress');
   return new ProgressBar(':percent|:bar|  :current/:total  elapsed: :elapseds  eta: :etas  :filename', {
@@ -35,6 +36,9 @@ function initProgressBar(totalLength, notebookName, counter) {
 }
 function getSyncEntryDirPath(dirPath) {
   return `${dirPath}/${SYNC_DIR_NAME}`;
+}
+function getSyncEntryDirPathOld(dirPath) {
+  return `${dirPath}/${SYNC_DIR_NAME_OLD}`;
 }
 function getSyncEntryFilePath(dirPath, filename) {
   return `${getSyncEntryDirPath(dirPath)}/.${filename}.json`;
@@ -121,6 +125,12 @@ function completeSyncEntry(entry) {
   fs.writeSync(fd, JSON.stringify(entry, null, '    '));
   fs.closeSync(fd);
 }
+function updateSyncDirName(dirPath) {
+  const fs = require('fs');
+  const oldPath = getSyncEntryDirPathOld(dirPath);
+  const syncEntryDirPath = getSyncEntryDirPath(dirPath);
+  if (fs.existsSync(oldPath)) fs.renameSync(oldPath, syncEntryDirPath);
+}
 function importFiles(dirPath, notebookName) {
   const path = require('path');
   const entries = [];
@@ -132,7 +142,6 @@ function importFiles(dirPath, notebookName) {
   const rootDirName = dirPath.split(path.sep).pop();
   if (!notebookName) notebookName = `${rootDirName}: ${new Date().toDateString()}`;
   const bar = initProgressBar(count, notebookName, counter);
-  // return doImportFiles(bar, dirPath, rootDirName, notebookName, counter);
   doImportFiles(bar, entries, rootDirName, notebookName, counter);
 }
 function preparePrarmsFile(entry) {
@@ -155,6 +164,7 @@ function countDir(dirPath, entries) {
   const fs = require('fs');
   const dir = fs.readdirSync(dirPath);
   let count = 0;
+  updateSyncDirName(dirPath);
   dir.forEach(function examFile(filename) {
     if (junk.is(filename)) return;
     if (/^\./.test(filename)) return;
@@ -165,7 +175,7 @@ function countDir(dirPath, entries) {
       // const entry = {};
       // entry.dirPath = dirPath;
       // entry.filename = filename;
-      entries.push({dirPath: dirPath, filename: filename});
+      entries.push({dirPath, filename});
     }
   });
   return count;
@@ -176,7 +186,7 @@ function main(argv) {
   const program = require('commander');
   program
     .version(module.exports.version)
-    .option('-n, --notebook <notebook>', 'Target Notebook Name, if not specified, a local notebook will be created named by root folder name and date.')
+    .option('-n, --notebook <notebook>', 'Target Notebook Name, a local notebook will be created if not specified.')
     .arguments('<path>')
     .parse(argv);
   if (!program.args.length) program.help();

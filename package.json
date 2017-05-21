@@ -11,7 +11,11 @@
     "url": "git+https://github.com/reggiezhang/dir-to-evernote.git"
   },
   "keywords": [
-    "evernote;applescript;jxa"
+    "evernote",
+    "applescript",
+    "jxa",
+    "osa",
+    "macos"
   ],
   "author": "Reggie Zhang",
   "license": "LGPL-3.0",

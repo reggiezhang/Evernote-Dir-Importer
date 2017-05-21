@@ -1,5 +1,9 @@
-## dir-to-evernote for MacOS
-Import directory into Evernote for MacOS
+## dir-to-evernote for macOS
+Import directory into Evernote for macOS
+
+## Prerequisites
+- macOS 10.10 or later
+- Evernote for macOS installed
 
 ## Install
 ```

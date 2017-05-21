@@ -10,7 +10,7 @@
       "name": "Launch Program",
       "program": "${workspaceRoot}/dir-to-evernote.js",
       "args": [
-        "/Users/i070159/Desktop/Wallpapers"
+        "./Wallpapers"
       ]
     }
   ]
