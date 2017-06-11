@@ -13,7 +13,6 @@
  */
 
 'use strict';
-
 const SYNC_DIR_NAME = '.dir-to-evernote';
 const SYNC_DIR_NAME_OLD = '.en-sync'; // <= 0.2.10
 function initProgressBar(totalLength, notebookName, counter) {
@@ -110,7 +109,7 @@ function initSyncEntry(dirPath, filename, notebookName, rootDirName) {
   const path = require('path');
   const entry = {};
   entry['SyncEntry'] = getSyncEntryFilePath(dirPath, filename);
-  entry['withText'] = filename;
+  entry['withText'] = filename + '\n';
   entry['title'] = filename;
   entry['notebook'] = notebookName;
   entry['attachments'] = [`${dirPath}/${filename}`];
