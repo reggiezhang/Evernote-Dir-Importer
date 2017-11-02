@@ -113,7 +113,8 @@ function initSyncEntry(dirPath, filename, notebookName, rootDirName) {
   entry['title'] = filename;
   entry['notebook'] = notebookName;
   entry['attachments'] = [`${dirPath}/${filename}`];
-  entry['tags'] = [rootDirName, dirPath.split(path.sep).pop()];
+  // entry['tags'] = [rootDirName, dirPath.split(path.sep).pop()];
+  entry['tags'] = dirPath.split(path.sep).unshift(rootDirName);
   return entry;
 }
 function completeSyncEntry(entry) {
