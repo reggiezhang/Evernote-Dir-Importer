@@ -52,7 +52,7 @@ function shouldByPass(dirPath, filename, entry) {
   const syncEntryFileExist = fs.existsSync(syncEntryFilePath);
   if (!syncEntryFileExist) return false;
   const syncEntry = JSON.parse(fs.readFileSync(syncEntryFilePath).toString());
-  if (!evernote.findNote(syncEntry.noteId.trim())) return false;
+  if (!syncEntry.noteId || !evernote.findNote(syncEntry.noteId.trim())) return false;
   const originalMd5 = syncEntry.md5;
   const latestMd5 = md5file.sync(`${dirPath}/${filename}`);
   if (originalMd5 !== latestMd5) {
