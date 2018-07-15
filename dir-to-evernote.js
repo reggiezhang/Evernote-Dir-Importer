@@ -42,26 +42,32 @@ function getSyncEntryDirPathOld(dirPath) {
 function getSyncEntryFilePath(dirPath, filename) {
   return `${getSyncEntryDirPath(dirPath)}/.${filename}.json`;
 }
-function shouldByPass(dirPath, filename, entry) {
+function ensureSnycEntryDir(dirPath) {
+  const fs = require('fs');
+  const syncEntryDirPath = getSyncEntryDirPath(dirPath);
+  if (!fs.existsSync(syncEntryDirPath)) fs.mkdirSync(syncEntryDirPath);
+}
+function compareAndProcess(dirPath, filename, newSyncEntry) {
   const fs = require('fs');
   const md5file = require('md5-file');
   const evernote = require('evernote-jxa');
-  const syncEntryDirPath = getSyncEntryDirPath(dirPath);
-  if (!fs.existsSync(syncEntryDirPath)) fs.mkdirSync(syncEntryDirPath);
-  const syncEntryFilePath = getSyncEntryFilePath(dirPath, filename);
-  const syncEntryFileExist = fs.existsSync(syncEntryFilePath);
-  if (!syncEntryFileExist) return false;
-  const syncEntry = JSON.parse(fs.readFileSync(syncEntryFilePath).toString());
-  if (!syncEntry.noteId || !evernote.findNote(syncEntry.noteId.trim())) return false;
-  const originalMd5 = syncEntry.md5;
-  const latestMd5 = md5file.sync(`${dirPath}/${filename}`);
-  if (originalMd5 !== latestMd5) {
+  ensureSnycEntryDir(dirPath);
+  const syncEntryFilePath = newSyncEntry['SyncEntry'];
+  if (!fs.existsSync(syncEntryFilePath))
+    return false;
+  const oldSyncEntry = JSON.parse(fs.readFileSync(syncEntryFilePath).toString());
+  if (!oldSyncEntry.noteId || !evernote.findNote(oldSyncEntry.noteId.trim()))
+    return false;
+  const oldMd5 = oldSyncEntry.md5;
+  const newMd5 = md5file.sync(`${dirPath}/${filename}`);
+  if (oldMd5 !== newMd5) {
     // delete old note
-    entry.md5 = syncEntry.md5;
-    const nbName = evernote.deleteNote(syncEntry.noteId.trim());
-    if (nbName) entry.notebook = nbName;
+    newSyncEntry.md5 = oldSyncEntry.md5;
+    const nbName = evernote.deleteNote(oldSyncEntry.noteId.trim());
+    if (nbName) newSyncEntry.notebook = nbName;
+    return false;
   }
-  return originalMd5 === latestMd5;
+  return true;
 }
 function barTick(bar, filename) {
   const cliTruncate = require('cli-truncate');
@@ -84,8 +90,8 @@ function doImportFiles(bar, entries, rootDirName, notebookName, counter) {
     const dirPath = fileEntry.dirPath;
     if (junk.is(filename)) return;
     if (/^\./.test(filename)) return;
-    const syncEntry = initSyncEntry(dirPath, filename, notebookName, rootDirName);
-    if (shouldByPass(dirPath, filename, syncEntry)) {
+    const syncEntry = composeSyncEntry(dirPath, filename, notebookName, rootDirName);
+    if (compareAndProcess(dirPath, filename, syncEntry)) {
       barTick(bar, filename);
     } else {
       syncEntry.md5 ? ++counter.updated : ++counter.created;
@@ -93,7 +99,7 @@ function doImportFiles(bar, entries, rootDirName, notebookName, counter) {
       try {
         evernote.createNotebook(syncEntry.notebook);
         syncEntry.noteId = evernote.createNote(paramsFilePath);
-        completeSyncEntry(syncEntry);
+        persistSyncEntry(syncEntry);
         barTick(bar, filename);
       } catch (e) {
         console.log(e);
@@ -105,7 +111,7 @@ function doImportFiles(bar, entries, rootDirName, notebookName, counter) {
     setTimeout(done, 1);
   });
 }
-function initSyncEntry(dirPath, filename, notebookName, rootDirName) {
+function composeSyncEntry(dirPath, filename, notebookName, rootDirName) {
   const path = require('path');
   const entry = {};
   entry['SyncEntry'] = getSyncEntryFilePath(dirPath, filename);
@@ -126,7 +132,7 @@ function initSyncEntry(dirPath, filename, notebookName, rootDirName) {
   }
   return entry;
 }
-function completeSyncEntry(entry) {
+function persistSyncEntry(entry) {
   const fs = require('fs');
   entry.syncDate = new Date();
   entry.md5 = require('md5-file').sync(entry.attachments[0]);
