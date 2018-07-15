@@ -47,16 +47,19 @@ function ensureSnycEntryDir(dirPath) {
   const syncEntryDirPath = getSyncEntryDirPath(dirPath);
   if (!fs.existsSync(syncEntryDirPath)) fs.mkdirSync(syncEntryDirPath);
 }
-function compareAndProcess(dirPath, filename, newSyncEntry) {
+function loadSyncEntryFromFile(filePath) {
   const fs = require('fs');
+  if (!fs.existsSync(filePath))
+    return undefined;
+  return JSON.parse(fs.readFileSync(filePath).toString());
+}
+function compareAndProcess(dirPath, filename, newSyncEntry) {
   const md5file = require('md5-file');
   const evernote = require('evernote-jxa');
   ensureSnycEntryDir(dirPath);
-  const syncEntryFilePath = newSyncEntry['SyncEntry'];
-  if (!fs.existsSync(syncEntryFilePath))
-    return false;
-  const oldSyncEntry = JSON.parse(fs.readFileSync(syncEntryFilePath).toString());
-  if (!oldSyncEntry.noteId || !evernote.findNote(oldSyncEntry.noteId.trim()))
+  const oldSyncEntry = loadSyncEntryFromFile(newSyncEntry['SyncEntry']);
+  if (!oldSyncEntry || !oldSyncEntry.noteId
+    || !evernote.findNote(oldSyncEntry.noteId.trim()))
     return false;
   const oldMd5 = oldSyncEntry.md5;
   const newMd5 = md5file.sync(`${dirPath}/${filename}`);
@@ -71,7 +74,8 @@ function compareAndProcess(dirPath, filename, newSyncEntry) {
 }
 function barTick(bar, filename) {
   const cliTruncate = require('cli-truncate');
-  const trailingStr = (bar.curr + 1 === bar.total) ? '' : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
+  const trailingStr = (bar.curr + 1 === bar.total) ? ''
+    : cliTruncate(filename, 40, { position: 'middle' }); // eslint-disable-line object-curly-spacing
   bar.tick(1, {
     'filename': trailingStr,
   });
