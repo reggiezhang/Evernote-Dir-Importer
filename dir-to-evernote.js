@@ -53,24 +53,32 @@ function loadSyncEntryFromFile(filePath) {
     return undefined;
   return JSON.parse(fs.readFileSync(filePath).toString());
 }
+/*
+true: no changes
+false: needs sync
+*/
 function compareAndProcess(dirPath, filename, newSyncEntry) {
   const md5file = require('md5-file');
   const evernote = require('evernote-jxa');
   ensureSnycEntryDir(dirPath);
   const oldSyncEntry = loadSyncEntryFromFile(newSyncEntry['SyncEntry']);
   if (!oldSyncEntry || !oldSyncEntry.noteId
-    || !evernote.findNote(oldSyncEntry.noteId.trim()))
+    || !evernote.findNote(oldSyncEntry.noteId.trim())) {
+    // New item, needs sync
     return false;
-  const oldMd5 = oldSyncEntry.md5;
-  const newMd5 = md5file.sync(`${dirPath}/${filename}`);
-  if (oldMd5 !== newMd5) {
-    // delete old note
-    newSyncEntry.md5 = oldSyncEntry.md5;
+  }
+  // Existing item, compare md5.
+  // also identify create or update based on the existence of md5 property
+  newSyncEntry.md5 = md5file.sync(`${dirPath}/${filename}`);
+  if (oldSyncEntry.md5 !== newSyncEntry.md5) {
+    // Needs sync, delete old note first
     const nbName = evernote.deleteNote(oldSyncEntry.noteId.trim());
     if (nbName) newSyncEntry.notebook = nbName;
     return false;
+  } else {
+    // no changes
+    return true;
   }
-  return true;
 }
 function barTick(bar, filename) {
   const cliTruncate = require('cli-truncate');
@@ -139,7 +147,8 @@ function composeSyncEntry(dirPath, filename, notebookName, rootDirName) {
 function persistSyncEntry(entry) {
   const fs = require('fs');
   entry.syncDate = new Date();
-  entry.md5 = require('md5-file').sync(entry.attachments[0]);
+  if (!entry['md5'])
+    entry.md5 = require('md5-file').sync(entry.attachments[0]);
   const fd = fs.openSync(entry.SyncEntry, 'w');
   fs.writeSync(fd, JSON.stringify(entry, null, '    '));
   fs.closeSync(fd);
