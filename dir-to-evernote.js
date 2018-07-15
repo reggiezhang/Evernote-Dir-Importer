@@ -24,7 +24,7 @@ function initProgressBar(totalLength, notebookName, counter) {
     total: totalLength,
     renderThrottle: 0,
     clear: false,
-    callback: function importCompleted() {  // Method which will display type of Animal
+    callback: function importCompleted() {// Method which will display type of Animal
       if (counter.created > 0) {
         console.log(`${counter.created} note(s) created in [${notebookName}], ${counter.updated} note(s) updated.`);
       } else {
@@ -49,8 +49,9 @@ function ensureSnycEntryDir(dirPath) {
 }
 function loadSyncEntryFromFile(filePath) {
   const fs = require('fs');
-  if (!fs.existsSync(filePath))
+  if (!fs.existsSync(filePath)) {
     return undefined;
+  }
   return JSON.parse(fs.readFileSync(filePath).toString());
 }
 /*
@@ -147,8 +148,9 @@ function composeSyncEntry(dirPath, filename, notebookName, rootDirName) {
 function persistSyncEntry(entry) {
   const fs = require('fs');
   entry.syncDate = new Date();
-  if (!entry['md5'])
+  if (!entry['md5']) {
     entry.md5 = require('md5-file').sync(entry.attachments[0]);
+  }
   const fd = fs.openSync(entry.SyncEntry, 'w');
   fs.writeSync(fd, JSON.stringify(entry, null, '    '));
   fs.closeSync(fd);
