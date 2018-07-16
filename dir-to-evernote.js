@@ -134,7 +134,7 @@ function composeSyncEntry(dirPath, filename, notebookName, rootDirName) {
   entry['attachments'] = [`${dirPath}/${filename}`];
   // entry['tags'] = [rootDirName, dirPath.split(path.sep).pop()];
   entry['tags'] = [rootDirName];
-  let pathArr = dirPath.split(path.sep);
+  const pathArr = dirPath.split(path.sep);
   let tag = null;
   while (tag = pathArr.pop()) {
     if (tag === rootDirName) {
