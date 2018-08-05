@@ -165,13 +165,13 @@ function importFiles(dirPath, notebookName) {
   const path = require('path');
   const entries = [];
   writeLineConsole('Calculating...');
-  const count = countDir(dirPath, entries);
+  collectEntries(dirPath, entries);
   clearLineConsole();
   const counter = { 'created': 0, 'updated': 0 }; // eslint-disable-line
 
   const rootDirName = dirPath.split(path.sep).pop();
   if (!notebookName) notebookName = `${rootDirName}: ${new Date().toDateString()}`;
-  const bar = initProgressBar(count, notebookName, counter);
+  const bar = initProgressBar(entries.length, notebookName, counter);
   doImportFiles(bar, entries, rootDirName, notebookName, counter);
 }
 function preparePrarmsFile(entry) {
@@ -189,26 +189,24 @@ function clearLineConsole() {
   process.stdout.clearLine();
   process.stdout.cursorTo(0);
 }
-function countDir(dirPath, entries) {
+function collectEntries(dirPath, entries) {
   const junk = require('junk');
   const fs = require('fs');
   const dir = fs.readdirSync(dirPath);
-  let count = 0;
   updateSyncDirName(dirPath);
   dir.forEach(function examFile(filename) {
     if (junk.is(filename)) return;
     if (/^\./.test(filename)) return;
     if (fs.lstatSync(`${dirPath}/${filename}`).isDirectory()) {
-      count += countDir(`${dirPath}/${filename}`, entries);
+      collectEntries(`${dirPath}/${filename}`, entries);
     } else {
-      count++;
       // const entry = {};
       // entry.dirPath = dirPath;
       // entry.filename = filename;
       entries.push({dirPath, filename});
     }
   });
-  return count;
+  return entries.length;
 }
 
 function main(argv) {
