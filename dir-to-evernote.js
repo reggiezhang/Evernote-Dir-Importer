@@ -161,7 +161,7 @@ function updateSyncDirName(dirPath) {
   const syncEntryDirPath = getSyncEntryDirPath(dirPath);
   if (fs.existsSync(oldPath)) fs.renameSync(oldPath, syncEntryDirPath);
 }
-function importFiles(dirPath, notebookName) {
+function dirToEvernote(dirPath, notebookName) {
   const path = require('path');
   const entries = [];
   writeLineConsole('Calculating...');
@@ -219,7 +219,7 @@ function main(argv) {
     .parse(argv);
   if (!program.args.length) program.help();
   const dirPath = program.args[0];
-  importFiles(dirPath, program.notebook);
+  dirToEvernote(dirPath, program.notebook);
 }
 
 if (typeof require != 'undefined' && require.main == module) {
